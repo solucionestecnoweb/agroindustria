@@ -23,6 +23,8 @@ class ResumenMunicipalModelo(models.Model):
     inventario_total = fields.Float('Total Inventario')
     mortalidad = fields.Float('Mortalidad')
     porcentaje_mortalidad = fields.Float()
+    huevos_buenos = fields.Float()
+    huevos_malos = fields.Float()
     #partner_id  = fields.Many2one(comodel_name='res.partner', string='Partner')
 
     #fecha_comprobante = fields.Date(string='Fecha')
@@ -39,6 +41,7 @@ class ResumenMunicipalModelo(models.Model):
 
     def float_format(self,valor):
         #valor=self.base_tax
+        result="0,00"
         if valor:
             result = '{:,.2f}'.format(valor)
             result = result.replace(',','*')
@@ -111,6 +114,7 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
 
     def float_format2(self,valor):
         #valor=self.base_tax
+        result="0,00"
         if valor:
             result = '{:,.2f}'.format(valor)
             result = result.replace(',','*')
@@ -132,10 +136,14 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
             for det in cursor_resumen:
                 inventario_total=self.total_inventario(det.id)
                 mortalidad_total=self.total_mortalidad(det.id)
+                huevos_buenos=self.total_huevos_buenos(det.id)
+                huevos_malos=self.total_huevos_malos(det.id)
                 values={
                 'location_id':det.id,
                 'inventario_total':inventario_total,
                 'mortalidad':mortalidad_total,
+                'huevos_buenos':huevos_buenos,
+                'huevos_malos':huevos_malos,
                 }
                 pdf_id = t.create(values)
         #   temp = self.env['account.wizard.pdf.ventas'].search([])
@@ -143,10 +151,12 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
 
     def total_inventario(self,id_location):
         total=0
-        lista_quant=self.env['stock.quant'].search([('location_id','=',id_location)])
+        lista_quant=self.env['stock.quant'].search([('location_id','=',id_location)]) #('in_date','>=',self.date_from),('in_date','<=',self.date_to)
         if lista_quant:
             for dett in lista_quant:
                 total=total+dett.quantity
+        else:
+          raise UserError(_('No hay datos que mostrar'))  
         return total
 
     def total_mortalidad(self,id_location):
@@ -159,6 +169,42 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
                 if lista_scrap:
                     for rec in lista_scrap:
                         total=total+rec.scrap_qty
+        return total
+
+    def total_huevos_buenos(self,id_location):
+        total=0
+        tabla_routing=self.env['mrp.routing'].search([('stock_location_id','=',id_location)])
+        if tabla_routing:
+            for det_routing in tabla_routing:
+                routing_id=det_routing.id
+                tabla_production=self.env['mrp.production'].search([('routing_id','=',routing_id)])
+                if tabla_routing:
+                    for det_pro in tabla_production:
+                        production_id=det_pro.id
+                        tabla_stock_move=self.env['stock.move'].search([('production_id','=',production_id)]) #('date','>=',self.date_from),('date','<=',self.date_to)
+                        if tabla_stock_move:
+                            for det_move in tabla_stock_move:
+                                condicion=det_move.product_id.product_tmpl_id.condicion_producto
+                                if condicion=='a':
+                                    total=total+det_move.product_qty
+        return total
+
+    def total_huevos_malos(self,id_location):
+        total=0
+        tabla_routing=self.env['mrp.routing'].search([('stock_location_id','=',id_location)])
+        if tabla_routing:
+            for det_routing in tabla_routing:
+                routing_id=det_routing.id
+                tabla_production=self.env['mrp.production'].search([('routing_id','=',routing_id)])
+                if tabla_routing:
+                    for det_pro in tabla_production:
+                        production_id=det_pro.id
+                        tabla_stock_move=self.env['stock.move'].search([('production_id','=',production_id)]) #('date','>=',self.date_from),('date','<=',self.date_to)
+                        if tabla_stock_move:
+                            for det_move in tabla_stock_move:
+                                condicion=det_move.product_id.product_tmpl_id.condicion_producto
+                                if condicion=='b':
+                                    total=total+det_move.product_qty
         return total
 
     def print_resumen(self):

@@ -96,6 +96,9 @@
                 </tr>
                 <t t-set="acum_total_inv" t-value="0"/>
                 <t t-set="acum_total_mortalidad" t-value="0"/>
+                <t t-set="acum_total_huevos_buenos" t-value="0"/>
+                <t t-set="acum_total_huevos_malos" t-value="0"/>
+                <t t-set="acum_total_huevos" t-value="0"/>
                 <t t-foreach="docs.line" t-as="o">
                   <t t-set="porcentage" t-value="0"/>
                   <tr style="font-size:12px;">
@@ -116,7 +119,32 @@
                       </t>
                       <t t-esc="o.float_format(porcentage)"/>
                     </td>
-                    <td colspan='6'>
+                    <td>
+                      <t t-esc="o.float_format(o.huevos_buenos)"/>
+                      <t t-set="acum_total_huevos_buenos" t-value="acum_total_huevos_buenos+o.huevos_buenos"/>
+                    </td>
+                    <td>
+                      <t t-if="o.inventario_total>0">
+                        <t t-set="porcentage2" t-value="o.huevos_buenos/o.inventario_total*100"/>
+                      </t>
+                      <t t-esc="o.float_format(porcentage2)"/>
+                    </td>
+                    <td>
+                      <t t-esc="o.float_format(o.huevos_malos)"/>
+                      <t t-set="acum_total_huevos_malos" t-value="acum_total_huevos_malos+o.huevos_malos"/>
+                    </td>
+                    <td>
+                      <t t-if="o.inventario_total>0">
+                        <t t-set="porcentage3" t-value="o.huevos_malos/o.inventario_total*100"/>
+                      </t>
+                      <t t-esc="o.float_format(porcentage3)"/>
+                    </td>
+                    <td>
+                      <t t-esc="o.float_format(o.huevos_malos+o.huevos_buenos)"/>
+                      <t t-set="acum_total_huevos" t-value="acum_total_huevos+o.huevos_malos+o.huevos_buenos"/>
+                    </td>
+                    <td>
+                      <t t-esc="o.float_format(porcentage3+porcentage2)"/>
                     </td>
                   </tr>
                 </t>
@@ -126,8 +154,13 @@
                     </td>
                     <td align="right"><t t-esc="o.float_format(acum_total_inv)"/></td>
                     <td align="right"><t t-esc="o.float_format(acum_total_mortalidad)"/></td>
-                    <td> </td>
-                    <td colspan="6"></td>
+                    <td align="right"><t t-esc="o.float_format((acum_total_mortalidad/acum_total_inv)*100)"/></td>
+                    <td align="right"><t t-esc="o.float_format(acum_total_huevos_buenos)"/></td>
+                    <td align="right"><t t-esc="o.float_format((acum_total_huevos_buenos/acum_total_inv)*100)"/></td>
+                    <td align="right"><t t-esc="o.float_format(acum_total_huevos_malos)"/></td>
+                    <td align="right"><t t-esc="o.float_format((acum_total_huevos_malos/acum_total_inv)*100)"/></td>
+                    <td align="right"><t t-esc="o.float_format(acum_total_huevos)"/></td>
+                    <td align="right"><t t-esc="o.float_format((acum_total_huevos_malos/acum_total_inv)*100+(acum_total_huevos_buenos/acum_total_inv)*100)"/></td>
                   </tr>
                 </tbody>
                </table>
