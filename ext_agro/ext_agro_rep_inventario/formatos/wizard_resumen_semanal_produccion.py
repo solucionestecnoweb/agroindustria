@@ -59,6 +59,7 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
     date_from  = fields.Date('Date From', default=lambda *a:(datetime.now() - timedelta(days=(1))).strftime('%Y-%m-%d'))
     date_to = fields.Date(string='Date To', default=lambda *a:datetime.now().strftime('%Y-%m-%d'))
     date_actual = fields.Date(default=lambda *a:datetime.now().strftime('%Y-%m-%d'))
+    uom_id = fields.Many2one('uom.uom')
 
     company_id = fields.Many2one('res.company','Company',default=lambda self: self.env.user.company_id.id)
     line  = fields.Many2many(comodel_name='resumen.semanal.pdf', string='Lineas')
@@ -186,7 +187,14 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
                             for det_move in tabla_stock_move:
                                 condicion=det_move.product_id.product_tmpl_id.condicion_producto
                                 if condicion=='a':
-                                    total=total+det_move.product_qty
+                                    tipo_uom=det_move.product_id.product_tmpl_id.uom_id.name
+                                    mayor_ratio=det_move.product_id.product_tmpl_id.uom_id.factor_inv
+                                    if tipo_uom=="Unidades":
+                                        total=total+(det_move.product_qty)
+                                    else:
+                                        total=total+(det_move.product_qty*mayor_ratio)
+        factor=self.uom_id.factor_inv
+        total=total/factor
         return total
 
     def total_huevos_malos(self,id_location):
@@ -204,7 +212,14 @@ class WizardReport_2(models.TransientModel): # aqui declaro las variables del wi
                             for det_move in tabla_stock_move:
                                 condicion=det_move.product_id.product_tmpl_id.condicion_producto
                                 if condicion=='b':
-                                    total=total+det_move.product_qty
+                                    tipo_uom=det_move.product_id.product_tmpl_id.uom_id.name
+                                    mayor_ratio=det_move.product_id.product_tmpl_id.uom_id.factor_inv
+                                    if tipo_uom=="Unidades":
+                                        total=total+(det_move.product_qty)
+                                    else:
+                                        total=total+(det_move.product_qty*mayor_ratio)
+        factor=self.uom_id.factor_inv
+        total=total/factor
         return total
 
     def print_resumen(self):
