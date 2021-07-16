@@ -59,7 +59,7 @@
                 <tbody class="table table-bordered">
                   <tr>
                     <td colspan="10">
-                      Unidades de presentación: <t t-esc="docs.uom_id.name"/>
+                      Tipo de Presentación: <t t-esc="docs.uom_id.name"/>
                     </td>
                   </tr>
                 <tr>
